@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>飞机大战</title>
+    <style>
+        body{font-family: "Microsoft YaHei",serif;user-select:none;}
+        body,dl,dd,p,h1,h2,h3,h4,h5,h6{margin: 0;}
+        ol,ul,li{margin: 0;padding: 0;list-style: none;}
+        img{border:none}
+        
+        #wrap{
+            position: relative;
+            width: 512px;
+            height: 768px;
+            margin: 0px auto 0px;
+            border: 1px solid #000;
+            overflow: hidden;
+        }
+        #diff{
+            position: absolute;
+            top:0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            background-image: url('./img/bg_1.jpg');
+        }
+        #diff .title{
+            text-align: center;
+            font-size: 30px;
+            color: #fff;
+            padding-top: 80px;
+            padding-bottom: 200px;
+        }
+        #diff ul li{
+            width: 150px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            margin: 20px auto 0;
+            /* border: 1px solid red;  */
+            background-color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        #diff ul li.money{
+            background-color: orange;
+            color: #fff;
+        }
+        #diff ul li:hover{
+            background-color: pink;
+        }
+        #game{
+            position: relative;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            background-image: url('./img/bg_1.jpg');
+            /* border: 1px solid firebrick; */
+        }
+        #game .planeimg{
+            position: absolute;
+        }
+        #over{
+            position: relative;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            background-image: url('./img/bg_3.jpg');
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="wrap">
+        <!-- 标题区域 -->
+        <div id="diff">
+            <p class="title">飞机大战 V1.0</p>
+            <ul>
+                <li>简单</li>
+                <li>中等</li>
+                <li>困难</li>
+                <li class="money">充钱了</li>
+            </ul>
+        </div>
+
+        <!-- 游戏区域 -->
+        <div id="game">
+
+        </div>
+        
+        <!-- 结算区域 -->
+        <div id="over">
+
+        </div>
+    </div>
+
+    <script>
+        ;(function(){
+            let aWrap = document.getElementById('wrap')
+            let aLi = document.querySelectorAll('#diff ul li')
+            let aGame = document.getElementById('game')
+            let aDiff = document.getElementById('diff')
+            let aOver = document.getElementById('over')
+
+            //初始化事件
+            ;(function(){
+                aLi.forEach((ele, index)=>{
+                    // ele.onclick = function(ev){
+                    //     start(ev, index)
+                    // } 
+                    ele.addEventListener("click", function (ev) {
+                        start(ev, index)
+                    }, false) 
+                })
+
+            })();
+
+            //开始游戏
+            function start(ev, index){
+                //处理模块隐藏
+                handlemode()
+                //生成我军
+                scPlane(ev ,index)
+            }
+
+            //生成我军
+            function scPlane(ev, index){ 
+                let plane = new Image(),
+                    width = 50,
+                    height = 50,
+                    top,
+                    left;
+                plane.src = './img/plane_1.png'
+                plane.width = width
+                plane.height = height
+                // console.log(ev)
+                left = ev.pageX - aWrap.offsetLeft - width/2
+                top = ev.pageY - height/2
+                plane.style.top = top + 'px'
+                plane.style.left = left + 'px'
+                plane.className = 'planeimg'
+                aGame.appendChild(plane)
+
+                //我军运动
+                planeMove(ev, top, left, plane)
+
+                //生成我军子弹
+                planeBiu(plane, index)
+            }
+
+            //我军运动
+            function planeMove(ev, top, left, plane){
+                document.addEventListener('mousemove', move, false)
+
+                //设置移动边界
+                let topMax = aGame.offsetHeight - 25,
+                    topMin = 0,
+                    leftMax = aGame.offsetWidth - 25,
+                    leftMin = - 25;
+
+                //飞机的移动事件
+                function move(e){
+
+                    let x_ = e.pageX - ev.pageX,
+                        y_ = e.pageY - ev.pageY,
+                        moveTop = top + y_,
+                        moveLeft = left + x_;
+
+                    moveTop = Math.max(topMin, moveTop)
+                    moveTop = Math.min(topMax, moveTop)
+                    moveLeft = Math.max(leftMin, moveLeft)
+                    moveLeft = Math.min(leftMax, moveLeft)
+
+                    
+                    // if(moveLeft<=aGame.offsetLeft-25){
+                    //     moveLeft = aGame.offsetLeft-25
+                    // }
+                    // if(moveLeft>=(aGame.offsetLeft+ aGame.offsetWidth-25)){
+                    //     moveLeft = aGame.offsetLeft + aGame.offsetWidth-25
+                    // }
+                    // if(moveTop<=0){
+                    //     moveTop = 0
+                    // }
+                    // if(moveTop>=(aGame.offsetHeight-25)){
+                    //     moveTop = aGame.offsetHeight - 25
+                    // }
+                   
+                    plane.style.top = moveTop + 'px'
+                    plane.style.left = moveLeft + 'px'
+
+                }
+            }
+
+            //我军子弹
+            function planeBiu(plane, index){
+                //决定子弹的间隔(发射子弹的速度) index
+                let time = [150, 200, 300, 50][index],
+                    biwidth = 15,
+                    biheight = 20;
+                    
+
+                //创建子弹
+                let obiu = new Image()
+                obiu.src = './img/fire.png'
+                obiu.width = biwidth
+                obiu.height = biheight
+                obiu.style.position = 'absolute'
+                // obiu.style.top = plane.offsetTop - plane.offsetHeight + 'px'
+                // obiu.style.left = plane.offsetLeft + plane.offsetWidth / 2 - obiu.width / 2 + 'px'
+                
+                //循环生成子弹
+                ~function createbiu(){
+                    let bebiu = obiu.cloneNode();
+                    let bitop = plane.offsetTop - biheight,
+                        bileft = plane.offsetLeft + plane.offsetWidth / 2 - obiu.width / 2;
+                    
+                    bebiu.style.top = bitop + 'px'
+                    bebiu.style.left = bileft + 'px'
+                    aGame.appendChild(bebiu)
+
+                    //子弹运动
+                    function biuMove(){
+                        bitop -= 18
+                        bebiu.style.top = bitop + 'px'
+                        if (bitop <= -biheight) {
+                            aGame.removeChild(bebiu)
+                        }else{
+                            requestAnimationFrame(biuMove)
+                        }
+                    }
+                    
+                    requestAnimationFrame(biuMove)
+
+                    setTimeout(createbiu, time)
+                }()
+
+               
+            }
+
+            //处理模块
+            function handlemode(){
+                aDiff.style.display = "none"
+                aGame.style.display = "block"
+                aOver.style.display = "none"
+            }
+
+        })();
+    
+    </script>
+
+</body>
+</html>
